@@ -38,12 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # local app
-    'ams',
+    'accounts',
     # system package
     'rest_framework',
     'rest_framework_simplejwt',
 ]
 ##################################################### added ###########################
+AUTH_USER_MODEL = 'accounts.Users'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',

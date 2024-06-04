@@ -41,7 +41,7 @@ class Users(AbstractBaseUser):
         max_length=255, help_text="fullName is required", null=False, blank=False)
     email = models.EmailField(
         unique=True, null="False", blank="False", help_text="email field required")
-    password = models.CharField(
+    password = models.CharField(max_length=50,
         null="False", blank="False", help_text="enter your password")
     course = models.CharField(
         max_length=255, blank=False, null=False, help_text="course is required")
