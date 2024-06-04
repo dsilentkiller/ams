@@ -22,10 +22,19 @@ class UserManager(BaseUserManager):
     # superuser create function
 
     def create_superuser(self, email, fullName, phoneNumber, password=None, **extra_fields):
-        extra_fields.setdefault('is_admin', True)  # default admin setup
-        if extra_fields.get('is_admin') is not True:
-            # if not default admin
-            raise ValueError('Superuser must have is_admin=True.')
+        
+        
+        """
+        Create and save a SuperUser with the given email and password.
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
 
         return self.create_user(email, fullName, phoneNumber, password, **extra_fields)
 
@@ -57,14 +66,21 @@ class Users(AbstractBaseUser):
     role = models.CharField(max_length=255, choices=ROLE_CHOICES)
     objects = UserManager()
 
+    # def __str__(self):
+    #     return self.fullName
     def __str__(self):
-        return self.fullName
+        return self.email
 
     def has_perm(self, perm, obj=None):  # admin
         return self.is_admin
 
     def has_module_perms(Self, app_label):
         return True
+    def has_perm(self,perm,obj=None):
+        return self.is_superuser
+    
+    def has_module_perms(self,app_label):
+        return self.is_superuser
 
     @property
     def is_staff(self):

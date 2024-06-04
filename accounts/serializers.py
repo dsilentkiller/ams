@@ -21,14 +21,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=Users.objects.all())]
     )
-    new_password = serializers.CharField(
+    password = serializers.CharField(
         write_only=True, required=True, validators=[validate_password])
-    confirm_new_password = serializers.CharField(
+    confirm_password = serializers.CharField(
         write_only=True, required=True)
 
     class Meta:
         model = Users
-        fields = ( 'password','new_password','confirm_new_password',
+        fields = ('password', 'password', 'confirm_password',
                   'email', 'fullName', 'phoneNumber')
         # extra_kwargs = {
         #   'first_name': {'required': True},
@@ -36,9 +36,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         # }
 
     def validate(self, attrs):
-        if attrs['new_password'] != attrs['confirm_new_password']:
+        if attrs['password'] != attrs['confirm_password']:
             raise serializers.ValidationError(
-                {"new_password": "Password fields didn't match."})
+                {"password": "Password fields didn't match."})
         return attrs
 
     def create(self, validated_data):
@@ -49,6 +49,20 @@ class RegisterSerializer(serializers.ModelSerializer):
             phoneNumber=validated_data['phoneNumber'],
 
         )
-        user.set_password(validated_data['new_password'])
+        user.set_password(validated_data['password'])
         user.save()
         return user
+# login serializer
+
+
+class LoginSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+    )
+    # password = serializers.CharField(
+    #     write_only=True, required=True, validators=[validate_password])
+
+    class Meta:
+        model = Users
+        fields = ('password',
+                  'email')
