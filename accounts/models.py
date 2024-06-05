@@ -7,7 +7,7 @@ from django.contrib.auth.hashers import make_password
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, fullname, phone_number, password=None, **extra_fields):
+    def create_user(self, email, fullName, phoneNumber, role, password=None, **extra_fields):
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
@@ -19,28 +19,28 @@ class UserManager(BaseUserManager):
         # Hash the password
         hashed_password = make_password(password)
 
-        user = self.model(email=email, fullname=fullname,
-                          phone_number=phone_number, password=hashed_password, **extra_fields)
+        user = self.model(email=email, fullName=fullName,
+                          phoneNumber=phoneNumber, role=role, password=hashed_password, **extra_fields)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, fullname, phone_number, password=None, **extra_fields):
+    def create_superuser(self, email, fullName, phoneNumber, password=None, **extra_fields):
         extra_fields.setdefault('is_admin', True)
 
         if extra_fields.get('is_admin') is not True:
             raise ValueError('Superuser must have is_admin=True.')
 
-        return self.create_user(email, fullname, phone_number, password, **extra_fields)
+        return self.create_user(email, fullName, phoneNumber, password, **extra_fields)
 
 
 class Users(AbstractBaseUser):
     ROLE_CHOICES = (
-        ('teacher', 'Teacher'),
-        ('admin', 'Admin'),
+        ('teacher', 'teacher'),
+        ('admin', 'admin'),
 
     )
     fullName = models.CharField(
-        max_length=200, blank=False, null=False,default="Ram Khadka", help_text="Enter your full name")
+        max_length=200, blank=False, null=False, default="Ram Khadka", help_text="Enter your full name")
     email = models.EmailField(
         verbose_name="Email",
         null=False,
@@ -49,18 +49,29 @@ class Users(AbstractBaseUser):
         help_text="Enter your Email"
     )
     password = models.CharField(
-        max_length=200, blank=False, null=False, help_text="Enter your password")
-    is_active = models.BooleanField(default=True,null=False)
-    is_admin = models.BooleanField(default=False,null=False)
-    created_at = models.DateTimeField(auto_now_add=True,null=True)
-    updated_at = models.DateTimeField(auto_now=True,null=True)
-    phoneNumber = models.CharField(max_length=14, unique=True,null=True)
+        max_length=14, blank=False, null=False, help_text="Enter your password")
+    is_active = models.BooleanField(default=True, null=False)
+    is_admin = models.BooleanField(default=False, null=False)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    phoneNumber = models.CharField(
+        max_length=14,
+        unique=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^(\+\d{1,2}\s?)?\d{7,10}$',
+                message="Phone number must be entered in the format '+977 9823456789'. Up to 15 digits allowed."
+            ),
+        ],
+        help_text="Phone number in the format '+977 9823456789'. Up to 15 digits allowed."
+    )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["fullname", "phone_number"]
+    REQUIRED_FIELDS = ["fullName", "phoneNumber"]
 
     def __str__(self):
         return self.email
