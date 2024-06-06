@@ -6,7 +6,12 @@ when use objects manager ? when not ?
 ============================================================================
 Password validation using regix . 
 phone number validation 
+#token verified and valid  and than only expiry date valid  and than go to dashboard.
+1.register user 
+2. Task : send_email  to register email with default password 
+3.Task : login  [token expiration ]
+4.profile 
+5.changepassword 
+6.reset password 
 
-Task : send_email 
-Task : login
 =============================

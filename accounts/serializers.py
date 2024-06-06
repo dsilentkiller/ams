@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate
+import logging
+logger = logging.getLogger(__name__)
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -48,25 +51,61 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
 # login serializer
 
+
 class LoginSerializer(serializers.ModelSerializer):
-    #email and password taken
+    # email and password taken
     email = serializers.EmailField(
         required=True,
     )
+    # password = serializers.CharField(
+    #     write_only=True)
+
+    class Meta:
+        model = Users
+        fields = ['email', 'password']
+
+
+class SendPasswordResetEmailSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
     password = serializers.CharField(
         write_only=True)
-#validate user email and passsword is register or not
-    def validate(self,data):
-        email =data.get('email')
-        password = data.get('password')
 
-        if email and password:
-            user =authenticate(request=self.context.get('request'),username=email,password=password)
-            if not user:
-                raise serializers.ValidationError("Invalid credentials")
-            else:
+    class Meta:
+        model = Users
+        fields = ['email', 'password']
 
-                raise serializers.ValidationError('  "Must include "email" and "password" ')
-        return data
+# validate user email and passsword is register or not
+    # def validate(self, data):
+    #     email = data.get('email')  # taken email
+    #     password = data.get('password')  # taken password
+
+    #     if email and password:
+    #         user = authenticate(request=self.context.get(
+    #             'request'), username=email, password=password)
+    #         if not user:
+    #             raise serializers.ValidationError("Invalid credentials")
+    #         else:
+
+    #             raise serializers.ValidationError(
+    #                 '  "Must include "email" and "password" ')
+    #     data['user'] = user
+    #     return data
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Users
+        fields = ['id', 'fullName', 'phoneNumber',  'email']
+    # to update profile
+
+    def update(self, instance, validated_data):
+        instance.fullName = validated_data.get('fullName', instance.fullName)
+        instance.phoneNumber = validated_data.get(
+            'phoneNumber', instance.phoneNumber)
+        instance.role = validated_data.get('role', instance.role)
+        instance.email = validated_data.get('email', instance.email)
+        instance.save()
+        return instance
