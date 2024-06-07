@@ -33,7 +33,7 @@ from datetime import datetime, timedelta
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from django.conf import settings
 from django.shortcuts import redirect
-
+from django.contrib.auth import update_session_auth_hash
 
 def get_tokens_for_user(user):
     # Define expiration times
@@ -110,6 +110,7 @@ class LoginAPIView(APIView):
             serializer = LoginSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
                 email = serializer.validated_data.get('email')
+
                 password = serializer.validated_data.get('password')
                 user = authenticate(
                     request=request, username=email, password=password)  # always for login and logout view
@@ -138,6 +139,16 @@ class LoginAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
+class ProfileAPIView(APIView):
+    # renderer_classes = [UserRenderer]
+    permission_classes = [IsAuthenticated]  # use a List, Not dictionary
+
+    def get(self, request, format=None):
+        serializer = ProfileSerializer(
+            request.user)  # user request.user to get user
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class SendPasswordResetEmailAPIView(APIView):
     def post(self, request, format=None):
         try:
@@ -157,7 +168,29 @@ class SendPasswordResetEmailAPIView(APIView):
                 "message": serializer.errors,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-# profile
+#change password view
+class ChangePasswordAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, format=None):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = request.user
+            # Check old password
+            if not user.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Set new password
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+
+            # Update session
+            update_session_auth_hash(request, user)
+
+            return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 
 # class ProfileAPIView(APIView):
@@ -195,32 +228,33 @@ class SendPasswordResetEmailAPIView(APIView):
 
     #         }, status=status.HTTP_400_BAD_REQUEST)
 
-class ProfileAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+# class ProfileAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
-        user = request.user  # Get the authenticated user
-        serializer = ProfileSerializer(user)  # Pass the user instance
-        return Response({
-            "success": True,
-            "message": "Profile Retrieved Successfully",
-            "result": serializer.data
-        })
+#     def get(self, request, format=None):
+#         user = request.user  # Get the authenticated user
+#         serializer = ProfileSerializer(user)  # Pass the user instance
+#         return Response({
+#             "success": True,
+#             "message": "Profile Retrieved Successfully",
+#             "result": serializer.data
+#         }, status=status.HTTP_200_OK)
+    # def post(self, request, format=None):
+    #     try:
+    #         serializer = ProfileSerializer(
+    #             instance=request.user, data=request.data)
+    #         # print(serializer)
 
-    def post(self, request, format=None):
-        try:
-            serializer = ProfileSerializer(
-                instance=request.user, data=request.data)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response({
-                    "success": True,
-                    "message": "Profile updated successfully",
-                    "result": serializer.data
-                }, status=status.HTTP_200_OK)
+    #         if serializer.is_valid(raise_exception=True):
+    #             serializer.save()
+    #             return Response({
+    #                 "success": True,
+    #                 "message": "Profile updated successfully",
+    #                 "result": serializer.data
+    #             }, status=status.HTTP_200_OK)
 
-        except ValidationError as e:
-            return Response({
-                "success": False,
-                "message": serializer.errors,
-            }, status=status.HTTP_400_BAD_REQUEST)
+    #     except ValidationError as e:
+    #         return Response({
+    #             "success": False,
+    #             "message": serializer.errors,
+    #         }, status=status.HTTP_400_BAD_REQUEST)

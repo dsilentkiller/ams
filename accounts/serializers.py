@@ -8,6 +8,7 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 import logging
+from django.contrib.auth import password_validation
 logger = logging.getLogger(__name__)
 
 
@@ -77,6 +78,39 @@ class SendPasswordResetEmailSerializer(serializers.ModelSerializer):
         model = Users
         fields = ['email', 'password']
 
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    class Meta:
+        model = Users
+        fields = ['old_password',
+                  'new_password']
+        #
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Old password is incorrect.")
+        return value
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+
+    def save(self):
+        user = self.context['request'].user
+        new_password = self.validated_data['new_password']
+        user.set_password(new_password)
+        user.save()
+        return user
+ # Include this to fix the AssertionError
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_password'] = serializers.CharField()
+
 # validate user email and passsword is register or not
     # def validate(self, data):
     #     email = data.get('email')  # taken email
@@ -98,14 +132,15 @@ class SendPasswordResetEmailSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['id', 'fullName', 'phoneNumber',  'email']
+        fields = ['id', 'fullName',  'email']
+
     # to update profile
 
-    def update(self, instance, validated_data):
-        instance.fullName = validated_data.get('fullName', instance.fullName)
-        instance.phoneNumber = validated_data.get(
-            'phoneNumber', instance.phoneNumber)
-        instance.role = validated_data.get('role', instance.role)
-        instance.email = validated_data.get('email', instance.email)
-        instance.save()
-        return instance
+    # def update(self, instance, validated_data):
+    #     instance.fullName = validated_data.get('fullName', instance.fullName)
+    #     instance.phoneNumber = validated_data.get(
+    #         'phoneNumber', instance.phoneNumber)
+    #     instance.role = validated_data.get('role', instance.role)
+    #     instance.email = validated_data.get('email', instance.email)
+    #     instance.save()
+    #     return instance
