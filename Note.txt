@@ -12,6 +12,10 @@ phone number validation
 3.Task : login  [token expiration ]
 4.profile 
 5.changepassword 
+6.1. forget password  click garda  2. email jancha 3.email ma aako  passeword reset link click garda  ,fromntend ko reset password  form ma jancha 
+6.2 frontend ko reset password bata   (new_password,confirm_password) backend ma jana paryo.
+
 6.reset password 
+if email change password if not email no email exist
 
 =============================

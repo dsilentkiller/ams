@@ -49,7 +49,10 @@ AUTH_USER_MODEL = 'accounts.Users'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
+
 }
 
 # SIMPLE_JWT = {
@@ -86,12 +89,19 @@ SIMPLE_JWT = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'paarurawal@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'paarurawal@gmail.com'
-EMAIL_HOST_PASSWORD = 'admin123@#'
-DEFAULT_FROM_EMAIL = 'paarurawal@gmail.com'
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'paaruinfo@gmail.com'  # resham1234
+EMAIL_HOST_PASSWORD = 'wjcf ytxu xqvy ombv'
+DEFAULT_FROM_EMAIL = 'paaruinfo@gmail.com'
+# EMAIL_FILE_PATH = '/tmp/app-messages'  # Change this to a desired path
+# Email timeout (in seconds)
+EMAIL_TIMEOUT = 20
+
+# Email subject prefix (useful for identifying emails from different environments)
+EMAIL_SUBJECT_PREFIX = '[ams] '
 ############################################# ended #####################################
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
