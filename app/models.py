@@ -14,9 +14,11 @@ class Subject(models.Model):
     numberOfClasses = models.BigIntegerField(
         blank=False, null=False, help_text="numberOfClasses is required")
     created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"subjectName - subjectCode"
+        return f"{self.subjectName} - {self.subjectCode}"
 
 
+# class Student(models.Model):
+#     fullName=models.CharField()
