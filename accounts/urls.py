@@ -18,6 +18,7 @@ urlpatterns = [
          name='forget-password'),
     path('reset-password/',
          views.ResetPasswordAPIView.as_view(), name='reset-password'),
+    # path('myapp/')
     # path('api/token/', views.TokenObtainPairView, name='token_obtain_pair'),
     # path('api/token/refresh/', views.TokenRefreshView, name='token_refresh'),
 ]

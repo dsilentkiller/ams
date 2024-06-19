@@ -15,6 +15,8 @@ phone number validation
 6.1. forget password  click garda  2. email jancha 3.email ma aako  passeword reset link click garda  ,fromntend ko reset password  form ma jancha 
 6.2 frontend ko reset password bata   (new_password,confirm_password) backend ma jana paryo.
 
+task #
+url  request url ko query read ? and manipulate ?
 6.reset password 
 if email change password if not email no email exist
 

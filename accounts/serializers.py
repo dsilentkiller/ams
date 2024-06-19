@@ -25,7 +25,7 @@ class UsersSerializer(serializers.ModelSerializer):
         model = Users
         fields = ['id', 'fullName', 'email',
                   'phoneNumber', 'role', 'is_staff', 'is_admin', 'created_at', 'updated_at']
-# register serializer
+# ==================== register serializer=======================================================
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -191,28 +191,18 @@ class ForgetPasswordSerializer(serializers.Serializer):
 
 
 ######################### sendPasswordresetemail ############
+
 class ResetPasswordSerializer(serializers.Serializer):
-    uid = serializers.CharField()
-    token = serializers.CharField()
-    new_password = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        write_only=True, required=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True, required=True)
 
     def validate(self, attrs):
-        try:
-            uid = urlsafe_base64_decode(attrs['uid']).decode()
-            self.user = Users.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, Users.DoesNotExist):
-            raise serializers.ValidationError("Invalid reset link.")
-
-        if not default_token_generator.check_token(self.user, attrs['token']):
-            raise serializers.ValidationError("Invalid reset link.")
-
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError(
+                {"password": "Password fields didn't match."})
         return attrs
 
-    def save(self):
-        new_password = self.validated_data['new_password']
-        self.user.set_password(new_password)
-        self.user.save()
-        return self.user
 
 # class ResetPasswordSerializer(serializers.Serializer):
 #     email = serializers.EmailField(required=True)

@@ -1,4 +1,5 @@
 
+from django.http import HttpRequest
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
@@ -10,6 +11,8 @@ from rest_framework.mixins import (
     ListModelMixin, RetrieveModelMixin,
     CreateModelMixin, UpdateModelMixin, DestroyModelMixin
 )
+from django.contrib.auth import get_user_model
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -23,7 +26,7 @@ from rest_framework.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.utils.crypto import get_random_string
-from django.contrib.auth import get_user_model
+
 from django.utils.encoding import force_str
 User = get_user_model()
 
@@ -46,7 +49,7 @@ def get_tokens_for_user(user):
         'exp': int((current_utc_time + refresh_token_lifetime).timestamp()),
         # Convert security key to string if necessary
         # 'security': str(settings.SECRET_KEY),
-        'iss': 'your_issuer_name',
+        # 'iss': 'your_issuer_name',
         'user_id': str(user.id),
     }
 
@@ -58,7 +61,7 @@ def get_tokens_for_user(user):
         'exp': int((current_utc_time + access_token_lifetime).timestamp()),
         # Convert security key to string if necessary
         # 'security': str(settings.SECRET_KEY),
-        'iss': 'your_issuer_name',
+        # 'iss': 'your_issuer_name',
         'user_id': str(user.id),
     }
 
@@ -187,36 +190,8 @@ class ChangePasswordAPIView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-################################## forget password ###################
 
-
-# class ForgetPasswordAPIView(APIView):
-#     # Ensure to adjust this to your needs
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, format=None):
-#         serializer = ForgetPasswordSerializer(data=request.data)
-
-#         if serializer.is_valid():
-#             try:
-#                 context = serializer.send_password_reset_email()
-#                 return Response({
-#                     "success": True,
-#                     "message": "Password reset link sent successfully.",
-#                     "result": context,  # Serialize the context
-#                 }, status=status.HTTP_200_OK)
-#             except Users.DoesNotExist:
-#                 return Response({
-#                     "success": False,
-#                     "message": "User with this email does not exist.",
-#                 }, status=status.HTTP_400_BAD_REQUEST)
-
-#         return Response({
-#             "success": False,
-#             "message": serializer.errors,
-#         }, status=status.HTTP_400_BAD_REQUEST)
-
-
+# ==================================== forget password =====================================================
 class ForgetPasswordAPIView(APIView):
     def post(self, request, format=None):
         serializer = ForgetPasswordSerializer(data=request.data)
@@ -224,12 +199,12 @@ class ForgetPasswordAPIView(APIView):
             try:
                 user = serializer.user
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = default_token_generator.make_token(user)
-                reset_password_url = f"http://frontend-url/reset-password?token={token}"
+                token = get_tokens_for_user(user)
+                reset_password_url = f"http://frontend-url/reset-password?uid={uid}&token={token}"
 
                 # Send the password reset link to the user's email
                 send_mail(
-                    'Password Reset',
+                    'Password Reset Request',
                     f'You can reset your password by clicking the link below:\n{reset_password_url}',
                     'paaruinfo@gmail.com',  # Replace with your email
                     [serializer.validated_data['email']],
@@ -253,65 +228,45 @@ class ForgetPasswordAPIView(APIView):
             "message": serializer.errors,
         }, status=status.HTTP_400_BAD_REQUEST)
 
-
 ############ reset password################################################
 
-# class ResetPasswordAPIView(APIView):
-#     def post(self, request, uidb64, token, format=None):
-#         serializer = ResetPasswordSerializer(data=request.data)
-#         if serializer.is_valid():
-#             try:
-#                 uid = force_str(urlsafe_base64_decode(uidb64))
-#                 user = Users.objects.get(pk=uid)
 
-#                 if default_token_generator.check_token(user, token):
-#                     new_password = serializer.validated_data['password']
-#                     user.set_password(new_password)
-#                     user.save()
+class ResetPasswordAPIView(APIView):
+    def post(self, request, format=None):
+        serializer = ResetPasswordSerializer(data=request.data)
 
-#                     return Response({
-#                         "success": True,
-#                         "message": "Password reset successfully."
-#                     }, status=status.HTTP_200_OK)
-#                 else:
-#                     return Response({
-#                         "success": False,
-#                         "message": "Password reset link is invalid or has expired."
-#                     }, status=status.HTTP_400_BAD_REQUEST)
-#             except Users.DoesNotExist:
-#                 return Response({
-#                     "success": False,
-#                     "message": "User with this email does not exist."
-#                 }, status=status.HTTP_400_BAD_REQUEST)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            token = request.data.get('token')
 
+            if token:
+                try:
+                    user = get_tokens_for_user(user)
+
+                    if user is not None:
+                        new_password = serializer.validated_data['password']
+                        user.set_password(new_password)
+                        user.save()
+
+                        return Response({
+                            "success": True,
+                            "message": "Password reset successfully."
+                        }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            "success": False,
+                            "message": "Token is invalid or expired."
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                except (TypeError, ValueError, OverflowError):
+                    return Response({
+                        "success": False,
+                        "message": "Invalid token format."
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({
+                    "success": False,
+                    "message": "Token is required in request data."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 ###### to send new password to user email ################################
-
-# class ResetPasswordAPIView(APIView):
-#     def post(self, request):
-#         serializer = ResetPasswordSerializer(data=request.data)
-#         if serializer.is_valid():
-#             email = serializer.validated_data['email']
-#             try:
-#                 user = User.objects.get(email=email)
-
-#                 # Generate a new password
-#                 new_password = get_random_string(length=8)
-#                 user.set_password(new_password)
-#                 user.save()
-
-#                 # Send the new password to the user's email
-#                 send_mail(
-#                     'Password Reset',
-#                     f'Your new password is: {new_password}',
-#                     'paarurawal@gmail.com',  # Default from email
-#                     [email],
-#                     fail_silently=False,
-#                 )
-
-#                 return Response({'message': 'A new password has been sent to your email.'}, status=status.HTTP_200_OK)
-#             except User.DoesNotExist:
-#                 return Response({'error': 'User with this email does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-#         else:
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
