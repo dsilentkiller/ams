@@ -232,6 +232,8 @@ class ForgetPasswordAPIView(APIView):
 
 
 class ResetPasswordAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, format=None):
         serializer = ResetPasswordSerializer(data=request.data)
 
@@ -268,5 +270,7 @@ class ResetPasswordAPIView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 ###### to send new password to user email ################################

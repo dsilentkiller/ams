@@ -8,8 +8,8 @@ from rest_framework.exceptions import ValidationError
 
 
 class SubjectAPIView(APIView):
-    def post(self, request, **args):
-        serializer = SubjectSerializers
+    def post(self, request, format=None):
+        serializer = SubjectSerializers(data=request.data)
         try:
             if serializer.is_valid(raise_exception=True):
                 subject = serializer.save()
