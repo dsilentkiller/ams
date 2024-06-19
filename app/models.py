@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime, timedelta, timezone
 
+# ====================== subject =================================
+
 
 class Subject(models.Model):
     subjectName = models.CharField(
@@ -19,6 +21,18 @@ class Subject(models.Model):
     def __str__(self):
         return f"{self.subjectName} - {self.subjectCode}"
 
+# ============ student ===================================
 
-# class Student(models.Model):
-#     fullName=models.CharField()
+
+class Student(models.Model):
+    fullName = models.CharField(
+        max_length=120, blank=True, null=True, help_text="fullName field is required")
+    email = models.EmailField(unique=True, blank=True,
+                              null=True, help_text="email field is required")
+    phoneNumber = models.CharField(
+        max_length=15, blank=True, null=True, help_text="phoneNumber field is required")
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.fullName}-{self.email}-{self.phoneNumber}"
