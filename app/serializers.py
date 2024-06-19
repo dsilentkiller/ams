@@ -7,3 +7,9 @@ class SubjectSerializers(serializers.ModelSerializer):
         model = Subject
         fields = ['id', 'subjectCode', 'subjectName',
                   'numberOfClasses', 'created']
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['id', 'fullName', 'email', 'phoneNumber', 'created']
