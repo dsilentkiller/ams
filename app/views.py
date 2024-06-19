@@ -202,7 +202,7 @@ class StudentDeleteAPIView(APIView):
     def delete(self, request, pk, format=None):
 
         try:
-            subject = Student.objects.get(pk=pk)
+            student = Student.objects.get(pk=pk)
         except Student.DoesNotExist:
 
             return Response({
@@ -210,7 +210,7 @@ class StudentDeleteAPIView(APIView):
                 "message": "Student not found."
             }, status=status.HTTP_404_NOT_FOUND)
 
-        subject.delete()
+        student.delete()
 
         return Response({
             "success": True,
