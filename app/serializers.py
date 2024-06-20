@@ -9,6 +9,12 @@ class SubjectSerializers(serializers.ModelSerializer):
                   'numberOfClasses', 'created']
 
 
+class UsersSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Users
+        fields = ['id', 'fullName', 'email']
+
+
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
@@ -16,6 +22,12 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    subject = serializers.PrimaryKeyRelatedField(
+        queryset=Subject.objects.all())
+    teacher = serializers.PrimaryKeyRelatedField(queryset=Users.objects.all())
+    students = serializers.PrimaryKeyRelatedField(
+        queryset=Users.objects.all(), many=True)
+
     class Meta:
         model = Group
         fields = ['id', 'subject', 'students', 'teacher',

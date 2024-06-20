@@ -39,9 +39,6 @@ class Student(models.Model):
 # ==============================Techer ====================================================
 
 
-# class Teacher(models.Model):
-#     pass
-
 # ================== Group ==================================================================================================================
 
 
@@ -54,8 +51,9 @@ class Group(models.Model):
 
     groupName = models.CharField(
         null=False, blank=False, max_length=255, unique=True, help_text="groupName is required")
-    students = models.OneToOneField(Student, on_delete=models.CASCADE, blank=False,
-                                    null=False, help_text="student is required")
+    students = models.ManyToManyField(Users, related_name='student_groups', blank=False,
+                                      null=False, help_text="student is required")
+    active = models.BooleanField(null=True)
     startTime = models.CharField(max_length=255, blank=False, null=False)
     endTime = models.CharField(max_length=255, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True)
@@ -63,3 +61,4 @@ class Group(models.Model):
 
     def __str__(self):
         return f'{self.subject}-{self.teacher}-{self.groupName}-{self.students}'
+# ====================================== Attandace ==========

@@ -3,9 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime, timedelta, timezone
-from app.serializers import SubjectSerializers, StudentSerializer
+from app.serializers import SubjectSerializers, StudentSerializer, GroupSerializer
 from rest_framework.exceptions import ValidationError
-from app.models import Subject, Student
+from app.models import Subject, Student, Group
 from django.shortcuts import get_object_or_404
 
 # ====================subject========================================
@@ -217,4 +217,126 @@ class StudentDeleteAPIView(APIView):
             "message": "Student deleted successfully."
         }, status=status.HTTP_204_NO_CONTENT)
 
-    # =============================
+    # ============================= group ================================================
+
+
+class GroupListAPIView(APIView):
+    def get(self, request, format=None):
+        groups = Group.objects.all()
+        serializer = GroupSerializer(groups, many=True)
+        return Response({
+            "success": True,
+            "message": "List All Group List",
+            "result": serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+
+class GroupCreateAPIView(APIView):
+    def post(self, request, format=None):
+        serializer = GroupSerializer(data=request.data)
+        try:
+            if serializer.is_valid(raise_exception=True):
+                group = serializer.save()
+                # Serialize the subject
+                subject_serializer = SubjectSerializers(group.subject)
+                group_data = {
+                    "id": group.id,
+                    "subject": subject_serializer.data,
+                    "teacher": group.teacher,
+                    "groupName": group.groupName,
+                    "students": group.students,
+                    "startTime": group.startTime,
+                    "endTime": group.endTime
+
+                }
+                return Response({
+                    "success": True,
+                    "message":  GroupSerializer(group).data,
+                }, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({
+                "success": False,
+                "message": serializer.errors,
+
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GroupDetailAPIView(APIView):
+    def get(self, request, pk):
+        group = get_object_or_404(Group, pk=pk)
+        serializer = GroupSerializer(group)
+        return Response(
+            {
+                "success": True,
+                "message": " Group Detail ",
+                "result": serializer.data
+            }, status=status.HTTP_200_OK)
+
+
+class GroupDetailAPIView(APIView):
+    def get(self, request, pk):
+        group = get_object_or_404(Group, pk=pk)
+        serializer = GroupSerializer(group)
+        return Response(
+            {
+                "success": True,
+                "message": "Group Detail ",
+                "result": serializer.data
+            }, status=status.HTTP_200_OK)
+
+
+class GroupUpdateAPIView(APIView):
+    def put(self, request, pk, format=None):
+        try:
+            group = Group.objects.get(pk=pk)
+        except Group.DoesNotExist:
+            return Response({
+                "success": False,
+                "message": "Group not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = GroupSerializer(group, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            group_data = {
+                "id": group.id,
+                "subject": group.subject,
+                "teacher": group.teacher,
+                "groupName": group.groupName,
+                "students": group.students,
+                "startTime": group.startTime,
+                "endTime": group.endTime
+            }
+            return Response({
+                "success": True,
+                "message": "Successfully group updated ",
+                "result": group_data
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "success": False,
+            "message": serializer.errors,
+
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GroupDeleteAPIView(APIView):
+    def delete(self, request, pk, format=None):
+
+        try:
+            group = Group.objects.get(pk=pk)
+        except Group.DoesNotExist:
+
+            return Response({
+                "success": False,
+                "message": "group not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        group.delete()
+
+        return Response({
+            "success": True,
+            "message": "group deleted successfully."
+        }, status=status.HTTP_204_NO_CONTENT)
+
+# ========================= attdance =========
