@@ -13,3 +13,10 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ['id', 'fullName', 'email', 'phoneNumber', 'created']
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'subject', 'students', 'teacher',
+                  'groupName', 'startTime', 'endTime']

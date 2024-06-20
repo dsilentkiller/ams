@@ -20,6 +20,8 @@ urlpatterns = [
          views.StudentUpdateAPIView.as_view(), name="student_update"),
     path('student/delete/<int:pk>/',
          views.StudentDeleteAPIView.as_view(), name="student_delete"),
-#=============================================== 
+#=============================================== Group=======================================
+
+
 
 ]
