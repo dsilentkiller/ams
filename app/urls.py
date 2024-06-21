@@ -30,5 +30,16 @@ urlpatterns = [
     path('group/delete/<int:pk>/',
          views.GroupDeleteAPIView.as_view(), name="group_delete"),
 
+#=================== Attendance ===============================================================
+  path('attendance/new/', views.AttendanceCreateAPIView.as_view(), name="attendance_create"),
+    path('attendance/list/', views.AttendanceListAPIView.as_view(), name="attendance_list"),
+    path('attendance/detail/<int:pk>/',
+         views.AttendanceDetailAPIView.as_view(), name="attendance_detail"),
+    path('attendance/update/<int:pk>/',
+         views.AttendanceUpdateAPIView.as_view(), name="attendance_update"),
+    path('attendance/delete/<int:pk>/',
+         views.AttendanceDeleteAPIView.as_view(), name="attendance_delete"),
+
+
 
 ]

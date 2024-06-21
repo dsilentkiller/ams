@@ -29,6 +29,7 @@ class Student(models.Model):
         max_length=255, blank=True, null=True, help_text="fullName field is required")
     email = models.EmailField(unique=True, blank=True,
                               null=True, help_text="email field is required")
+    course=models.CharField(max_length=255,null=True,blank=False,help_text="course field is required")
     phoneNumber = models.CharField(
         max_length=15, blank=True, null=True, help_text="phoneNumber field is required")
     created = models.DateTimeField(auto_now_add=True)
@@ -62,3 +63,16 @@ class Group(models.Model):
     def __str__(self):
         return f'{self.subject}-{self.teacher}-{self.groupName}-{self.students}'
 # ====================================== Attandace ==========
+class Attendance(models.Model):
+    date=models.DateTimeField(auto_now_add=True,blank=False,help_text="date is required")
+    groupId=models.ForeignKey(Group,null=False,on_delete=models.CASCADE,help_text="groupId is Required")
+    studentId=models.ForeignKey(Student,on_delete=models.CASCADE,null=False,blank=False,help_text="studentID is required")
+    present=models.BooleanField(default=False)
+    created=models.DateTimeField(auto_now_add=True)
+    updated=models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.date}-{self.groupId}-{self.studentId}-{self.present}'
+
+
+
